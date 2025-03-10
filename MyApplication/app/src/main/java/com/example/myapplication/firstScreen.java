@@ -10,20 +10,20 @@ import androidx.appcompat.app.AppCompatActivity;
 public class firstScreen extends AppCompatActivity{
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-    }
-    Button buton1 = (Button) findViewById(R.id.button);
 
-    buton1.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            startActivity(new Intent(getApplicationContext(), secondScreen.class));
-            startActivity(new Intent("android.intent.action.MAIN"));
-        }
-    });
+        Button buton1 = findViewById(R.id.button); // Doğru konumda çağırıldı
+
+        buton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), secondScreen.class);
+                startActivity(intent);
+            }
+        });
+    }
 
 
 }
