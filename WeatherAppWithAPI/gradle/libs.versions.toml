@@ -1,0 +1,72 @@
+[versions]
+agp = "8.8.2"
+annotationExperimental = "1.4.1"
+coil = "2.4.0"
+cursoradapter = "1.0.0"
+customview = "1.1.0"
+drawerlayout = "1.2.0"
+fragmentKtx = "1.8.6"
+glance = "1.1.1"
+glide = "4.12.0"
+gson = "2.10.1"
+interpolator = "1.0.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+appcompat = "1.7.0"
+lifecycleViewmodelKtx = "2.8.7"
+loader = "1.1.0"
+loggingInterceptor = "4.10.0"
+material = "1.12.0"
+okhttp = "4.11.0"
+playServicesLocation = "21.3.0"
+retrofit = "2.9.0"
+playServicesContextmanager = "9.4.0"
+runtime = "1.7.8"
+savedstateKtx = "1.2.1"
+uiGeometry = "1.7.8"
+vectordrawableAnimated = "1.2.0"
+versionedparcelable = "1.2.1"
+workRuntime = "2.10.0"
+
+[libraries]
+androidx-annotation-experimental = { module = "androidx.annotation:annotation-experimental", version.ref = "annotationExperimental" }
+androidx-appcompat-resources = { module = "androidx.appcompat:appcompat-resources", version.ref = "appcompat" }
+androidx-cursoradapter = { module = "androidx.cursoradapter:cursoradapter", version.ref = "cursoradapter" }
+androidx-customview = { module = "androidx.customview:customview", version.ref = "customview" }
+androidx-drawerlayout = { module = "androidx.drawerlayout:drawerlayout", version.ref = "drawerlayout" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-interpolator = { module = "androidx.interpolator:interpolator", version.ref = "interpolator" }
+androidx-lifecycle-livedata-core-ktx = { module = "androidx.lifecycle:lifecycle-livedata-core-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-lifecycle-viewmodel-savedstate = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "lifecycleViewmodelKtx" }
+androidx-loader = { module = "androidx.loader:loader", version.ref = "loader" }
+androidx-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "runtime" }
+androidx-savedstate-ktx = { module = "androidx.savedstate:savedstate-ktx", version.ref = "savedstateKtx" }
+androidx-ui-geometry = { module = "androidx.compose.ui:ui-geometry", version.ref = "uiGeometry" }
+androidx-ui-unit = { module = "androidx.compose.ui:ui-unit", version.ref = "uiGeometry" }
+androidx-vectordrawable = { module = "androidx.vectordrawable:vectordrawable", version.ref = "vectordrawableAnimated" }
+androidx-vectordrawable-animated = { module = "androidx.vectordrawable:vectordrawable-animated", version.ref = "vectordrawableAnimated" }
+androidx-versionedparcelable = { module = "androidx.versionedparcelable:versionedparcelable", version.ref = "versionedparcelable" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntime" }
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+glance = { module = "androidx.glance:glance", version.ref = "glance" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+play-services-contextmanager = { group = "com.google.android.gms", name = "play-services-contextmanager", version.ref = "playServicesContextmanager" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+
