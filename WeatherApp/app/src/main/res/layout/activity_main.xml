@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/light_blue_background"
+    tools:context=".MainActivity">
+
+    <Spinner
+        android:id="@+id/citySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:spinnerMode="dropdown"/>
+
+    <ImageView
+        android:id="@+id/weatherIconImageView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="Hava durumu ikonu" />
+
+    <TextView
+        android:id="@+id/weatherInfoTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="Lütfen bir şehir seçin."
+        android:textSize="18sp" />
+</LinearLayout>
