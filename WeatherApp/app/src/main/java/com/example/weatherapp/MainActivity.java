@@ -1,4 +1,3 @@
-//MainActivity.java
 package com.example.weatherapp;
 
 // Mevcut importlar
@@ -145,7 +144,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int itemId = item.getItemId();
-                if (itemId == R.id.menu_add_city) {
+                if (itemId == R.id.menu_password_reset) {
+                    // Şifre yenileme işlemi
+                    sendPasswordResetEmail(); // <-- Metodu çağırıyoruz
+                    return true;
+                } else if (itemId == R.id.menu_add_city) {
                     // Şehir ekleme işlemi (TODO: Veritabanı gerektirir)
                     Toast.makeText(MainActivity.this, "Şehir Ekle seçildi (Henüz aktif değil)", Toast.LENGTH_SHORT).show();
                     return true;
@@ -177,6 +180,31 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
         Toast.makeText(this, "Çıkış yapıldı.", Toast.LENGTH_SHORT).show();
+    }
+
+    // Şifre sıfırlama e-postası gönderen metod <-- Bu metodu ekleyin
+    private void sendPasswordResetEmail() {
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        if (user != null && user.getEmail() != null && !user.getEmail().isEmpty()) {
+            String emailAddress = user.getEmail();
+
+            mAuth.sendPasswordResetEmail(emailAddress)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "Şifre sıfırlama e-postası gönderildi: " + emailAddress);
+                                Toast.makeText(MainActivity.this, "Şifre sıfırlama e-postası gönderildi. Lütfen e-postanızı kontrol edin.", Toast.LENGTH_LONG).show();
+                            } else {
+                                Log.e(TAG, "Şifre sıfırlama e-postası gönderilemedi.", task.getException());
+                                Toast.makeText(MainActivity.this, "Şifre sıfırlama e-postası gönderilemedi. Hata: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+        } else {
+            Toast.makeText(this, "Şifre sıfırlama için geçerli kullanıcı bulunamadı.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Hesabı silme işlemini başlatan metod <-- Bu metodu ekleyin
@@ -387,5 +415,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // onStart metodu LoginActivity'de otomatik giriş kontrolü için yeterlidir.
+
 }

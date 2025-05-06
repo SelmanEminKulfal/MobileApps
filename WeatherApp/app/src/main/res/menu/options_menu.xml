@@ -7,6 +7,9 @@
         android:id="@+id/menu_delete_city"
         android:title="Şehir Sil" />
     <item
+        android:id="@+id/menu_password_reset"
+        android:title="Şifre Yenile" />
+    <item
         android:id="@+id/menu_logout"
         android:title="Çıkış Yap" />
     <item
