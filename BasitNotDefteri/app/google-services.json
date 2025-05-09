@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "904172859756",
+    "project_id": "basitnotdefteri-app",
+    "storage_bucket": "basitnotdefteri-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:904172859756:android:6b679db31126f200cc4349",
+        "android_client_info": {
+          "package_name": "com.example.basitnotdefteri"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgagJ4y5yCDBAAutcSLCwtKXDiUpJfW4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
