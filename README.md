@@ -1,7 +1,7 @@
 # Mobil Uygulama Çalışmaları
 ## Bu depomuzda Java kullanarak yaptığım tüm Android uygulama çalışmalarıma erişebilirsiniz.
 
-[Hava Durumu Uygulaması - API kullanımı](../WeatherApp)
+[Hava Durumu Uygulaması - API kullanımı](tree/WeatherApp)
 
 -------------------------------------------------------
 [Not Defteri Uygulaması](../BasitNotDefteri)
