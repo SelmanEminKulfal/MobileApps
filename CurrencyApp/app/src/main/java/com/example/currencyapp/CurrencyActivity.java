@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void getRates() {
         DownloadData downloadData = new DownloadData();
-        downloadData.execute("http://data.fixer.io/api/latest?access_key=47340437047fa6d248adee83d9c0f460");
+        downloadData.execute("https://data.fixer.io/api/latest?access_key=47340437047fa6d248adee83d9c0f460");
     }
 
     public class DownloadData extends AsyncTask<String, Void, String> {
