@@ -17,7 +17,7 @@ import android.widget.Toast;
 import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 
-import androidx.annotation.NonNull; // <-- @NonNull notasyonu için ekleyin
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -32,8 +32,14 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.EmailAuthProvider; // <-- Şifre ile kimlik doğrulama için eklendi
-import com.google.firebase.auth.AuthCredential; // <-- Kimlik bilgisi türü için eklendi
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.AuthCredential;
+
+// Firebase Firestore için importlar <-- Bunlar eklendi/düzenlendi
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import com.google.gson.Gson;
 
@@ -41,14 +47,20 @@ import com.google.gson.Gson;
 import android.view.MenuInflater;
 import android.widget.PopupMenu;
 import android.view.MenuItem;
-import android.content.Intent; // Logout sonrası geçiş için
-import android.text.TextUtils; // Metin kontrolleri için eklendi
+import android.content.Intent;
+import android.text.TextUtils;
 
 // AlertDialog ve ilgili bileşenler için importlar
-import android.app.AlertDialog; // <-- AlertDialog için eklendi
-import android.content.DialogInterface; // <-- Dialog butonları için eklendi
-import android.widget.EditText; // <-- Dialog içine EditText için eklendi
-import android.widget.LinearLayout; // <-- Dialog içindeki layout için eklendi
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List; // ArrayList ve List kullanmak için eklendi
+import java.util.Arrays; // Eğer direkt Arrays.asList kullanacaksanız. Şu an kullanılmıyor ama kalsın.
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView userInitialTextView;
 
-    private FirebaseAuth mAuth; // Firebase Authentication nesnesi
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db; // Firebase Firestore nesnesi eklendi
+
+    private List<String> currentCityList; // Spinner için kullanılacak şehir listesi eklendi
 
     private static final String API_KEY = "524c1023a86e0d2228a9e22dfbef1d60"; // API Anahtarınız
     private RequestQueue queue;
@@ -71,8 +86,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Firebase Authentication nesnesini al
+        // Firebase Authentication ve Firestore nesnelerini al
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance(); // Firestore nesnesini başlat
 
         // Layout dosyasındaki bileşenleri bul
         weatherInfoTextView = findViewById(R.id.weatherInfoTextView);
@@ -88,12 +104,11 @@ public class MainActivity extends AppCompatActivity {
             userInitialTextView.setText(String.valueOf(initial).toUpperCase());
         } else {
             userInitialTextView.setText("?");
-            // Kullanıcı giriş yapmamışsa MainActivity'de olmaması gerekir, LoginActivity'deki checkCurrentUser bunu yönlendirmeli
-            // Yine de burada bir kontrol veya yönlendirme eklemek istersen ekleyebilirsin.
-            // Örneğin:
-            // Intent intent = new Intent(this, LoginActivity.class);
-            // startActivity(intent);
-            // finish();
+            // Kullanıcı giriş yapmamışsa LoginActivity'ye yönlendir
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return; // onCreate'i erken sonlandır
         }
 
         // Kullanıcı ikonuna/iline tıklanma olayını dinle
@@ -107,32 +122,108 @@ public class MainActivity extends AppCompatActivity {
         // Volley RequestQueue oluşturma
         queue = Volley.newRequestQueue(this);
 
-        // 81 ili strings.xml'den alma ve Spinner'ı ayarlama
-        String[] provinces = getResources().getStringArray(R.array.turkey_provinces);
+        // Spinner'ı başlangıçta boş bir liste ile ayarla
+        // Kayıtlı şehirler yüklendikten sonra updateSpinnerWithCities metodu ile güncellenecek.
+        currentCityList = new ArrayList<>(); // Başlangıçta boş liste
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, provinces);
+                android.R.layout.simple_spinner_dropdown_item, currentCityList);
         citySpinner.setAdapter(adapter);
 
-        // Spinner öğesi seçildiğinde hava durumu bilgisini çekme
+        // Spinner öğesi seçildiğinde hava durumu bilgisini çekme (Güncellendi: Listenin boş olma durumunu kontrol eder)
         citySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedCity = parent.getItemAtPosition(position).toString();
-                Log.d(TAG, "Selected City: " + selectedCity);
-                getWeatherData(selectedCity);
+                // Spinner boş değilse ve geçerli bir pozisyon seçildiyse işlemi yap
+                if (currentCityList != null && position >= 0 && position < currentCityList.size()) {
+                    String selectedCity = currentCityList.get(position);
+                    Log.d(TAG, "Selected City from Spinner: " + selectedCity);
+                    getWeatherData(selectedCity); // Hava durumu metodunu çağır
+                } else {
+                    // Liste boşsa veya geçersiz seçimse varsayılan mesaj göster
+                    Log.d(TAG, "Spinner'da seçilecek şehir yok veya geçersiz pozisyon.");
+                    weatherInfoTextView.setText("Lütfen şehir ekleyin.");
+                    weatherIconImageView.setImageDrawable(null);
+                    weatherIconImageView.setVisibility(View.GONE);
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                weatherInfoTextView.setText("Lütfen bir şehir seçin.");
+                weatherInfoTextView.setText("Lütfen şehir ekleyin.");
+                weatherIconImageView.setImageDrawable(null);
+                weatherIconImageView.setVisibility(View.GONE);
             }
         });
 
-        // Uygulama ilk başladığında varsayılan bir şehri yüklemek istersen
-        // Spinner varsayılan olarak ilk öğeyi seçeceği için, bu listener zaten tetiklenecek.
-        // Eğer Spinner'da varsayılan bir şehir seçmek istersen:
-        // citySpinner.setSelection(adapter.getPosition("Ankara")); // "Ankara" stringinin listedeki pozisyonuna göre
+        // Uygulama başladığında kullanıcının kayıtlı şehirlerini yükle <-- Burası eklendi
+        loadSavedCities();
     }
+
+    // Kullanıcının kayıtlı şehirlerini Firestore'dan yükleyen metod
+    private void loadSavedCities() {
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        if (user == null) {
+            Log.e(TAG, "loadSavedCities: No user logged in.");
+            logoutUser(); // Güvenlik için Login'e geri yönlendir
+            return;
+        }
+
+        String userId = user.getUid();
+
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> savedCities = null;
+                        Object citiesObject = documentSnapshot.get("savedCities");
+                        if (citiesObject instanceof List) {
+                            // Firestore'dan gelen veriyi List<String>'e cast et
+                            savedCities = (List<String>) citiesObject;
+                        }
+
+                        if (savedCities != null && !savedCities.isEmpty()) {
+                            Log.d(TAG, "Kayıtlı şehirler yüklendi: " + savedCities.toString());
+                            updateSpinnerWithCities(savedCities);
+                        } else {
+                            Log.d(TAG, "Kullanıcının kayıtlı şehri yok veya liste boş.");
+                            weatherInfoTextView.setText("Henüz kayıtlı şehriniz yok.\nMenüden şehir ekleyebilirsiniz.");
+                            updateSpinnerWithCities(new ArrayList<>());
+                        }
+                    } else {
+                        Log.d(TAG, "Kullanıcı için Firestore belgesi bulunamadı.");
+                        weatherInfoTextView.setText("Henüz kayıtlı şehriniz yok.\nMenüden şehir ekleyebilirsiniz.");
+                        updateSpinnerWithCities(new ArrayList<>());
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Kayıtlı şehirler yüklenirken hata oluştu.", e);
+                    Toast.makeText(MainActivity.this, "Kayıtlı şehirler yüklenirken hata oluştu.", Toast.LENGTH_SHORT).show();
+                    weatherInfoTextView.setText("Kayıtlı şehirler yüklenirken hata oluştu.");
+                    updateSpinnerWithCities(new ArrayList<>());
+                });
+    }
+
+    // Spinner'ı verilen şehir listesiyle güncelleyen metod
+    private void updateSpinnerWithCities(List<String> cities) {
+        currentCityList.clear(); // Mevcut listeyi temizle
+        if (cities != null) {
+            currentCityList.addAll(cities); // Yeni şehirleri listeye ekle
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, currentCityList);
+        citySpinner.setAdapter(adapter);
+
+        if (currentCityList != null && !currentCityList.isEmpty()) {
+            citySpinner.setSelection(0); // İlk öğeyi seç (onItemSelected otomatik tetiklenir)
+        } else {
+            weatherInfoTextView.setText("Lütfen şehir ekleyin.");
+            weatherIconImageView.setImageDrawable(null);
+            weatherIconImageView.setVisibility(View.GONE);
+            Log.d(TAG, "Spinner listesi boş. Hava durumu çekilmiyor.");
+        }
+    }
+
 
     // Seçenekler menüsünü gösteren metod
     private void showOptionsMenu(View v) {
@@ -145,24 +236,19 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 int itemId = item.getItemId();
                 if (itemId == R.id.menu_password_reset) {
-                    // Şifre yenileme işlemi
-                    sendPasswordResetEmail(); // <-- Metodu çağırıyoruz
+                    sendPasswordResetEmail();
                     return true;
                 } else if (itemId == R.id.menu_add_city) {
-                    // Şehir ekleme işlemi (TODO: Veritabanı gerektirir)
-                    Toast.makeText(MainActivity.this, "Şehir Ekle seçildi (Henüz aktif değil)", Toast.LENGTH_SHORT).show();
+                    showAddCityDialog(); // Şehir ekleme diyalogunu göster
                     return true;
                 } else if (itemId == R.id.menu_delete_city) {
-                    // Şehir silme işlemi (TODO: Veritabanı gerektirir)
-                    Toast.makeText(MainActivity.this, "Şehir Sil seçildi (Henüz aktif değil)", Toast.LENGTH_SHORT).show();
+                    showDeleteCityDialog(); // <-- Şehir silme diyalogunu çağıran metot (Bir sonraki adımda eklenecek)
                     return true;
                 } else if (itemId == R.id.menu_logout) {
-                    // Çıkış yap işlemi
-                    logoutUser(); // <-- Metodu çağırıyoruz
+                    logoutUser();
                     return true;
                 } else if (itemId == R.id.menu_delete_account) {
-                    // Hesabı silme işlemi
-                    confirmAndDeleteAccount(); // <-- Metodu çağırıyoruz
+                    confirmAndDeleteAccount();
                     return true;
                 } else {
                     return false;
@@ -172,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
         popup.show();
     }
 
-    // Kullanıcının çıkış yapmasını sağlayan metod (Daha önce eklemiştik)
+    // Kullanıcının çıkış yapmasını sağlayan metod
     private void logoutUser() {
         mAuth.signOut();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -182,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Çıkış yapıldı.", Toast.LENGTH_SHORT).show();
     }
 
-    // Şifre sıfırlama e-postası gönderen metod <-- Bu metodu ekleyin
+    // Şifre sıfırlama e-postası gönderen metod
     private void sendPasswordResetEmail() {
         FirebaseUser user = mAuth.getCurrentUser();
 
@@ -207,41 +293,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Hesabı silme işlemini başlatan metod <-- Bu metodu ekleyin
+    // Hesabı silme işlemini başlatan metod
     private void confirmAndDeleteAccount() {
         FirebaseUser user = mAuth.getCurrentUser();
 
         if (user == null) {
             Toast.makeText(this, "Hesap silme için geçerli kullanıcı bulunamadı.", Toast.LENGTH_SHORT).show();
-            logoutUser(); // Kullanıcı null ise Login'e yönlendir
+            logoutUser();
             return;
         }
 
-        // Kullanıcıdan şifresini tekrar girmesini isteyen bir iletişim kutusu oluştur
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Hesabı Sil");
         builder.setMessage("Hesabınızı kalıcı olarak silmek üzeresiniz. Bu işlem geri alınamaz. Devam etmek için lütfen şifrenizi girin.");
 
-        // İletişim kutusu içine şifre girmek için EditText ekle
         final EditText passwordEditText = new EditText(this);
         passwordEditText.setHint("Şifreniz");
-        passwordEditText.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD); // Şifre girişi için uygun input tipi
-        passwordEditText.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        // EditText'i iletişim kutusuna eklemek için bir Layout kullan ve padding ver
+        passwordEditText.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        // Layout'a padding eklemek, EditText'in kenarlara yapışmasını engeller
-        int paddingDp = 16; // dp cinsinden padding miktarı
+        int paddingDp = 16;
         float density = getResources().getDisplayMetrics().density;
         int paddingPixel = (int) (paddingDp * density);
         layout.setPadding(paddingPixel, 0, paddingPixel, 0);
         layout.addView(passwordEditText);
         builder.setView(layout);
 
-        // Pozitif buton (Sil)
         builder.setPositiveButton("Sil", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -252,21 +329,16 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Kullanıcıyı yeniden kimlik doğrulama (re-authenticate)
-                // Hesabı silme gibi hassas işlemler için yakın zamanda giriş yapılmış olması gerekir.
-                // Yakın zamanda giriş yapılmadıysa re-authenticate yapmalıyız.
-                // E-posta alanı EditText olmadığı için kullanıcının mevcut e-postasını FirebaseUser nesnesinden alıyoruz
-                AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password); // E-posta ve şifre ile kimlik bilgisi oluştur
+                AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
 
-                user.reauthenticate(credential) // Kullanıcıyı yeniden kimlik doğrula
+                user.reauthenticate(credential)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     Log.d(TAG, "Kullanıcı yeniden kimlik doğrulandı.");
 
-                                    // Yeniden kimlik doğrulama başarılı, şimdi hesabı sil
-                                    user.delete() // Hesabı silme işlemi
+                                    user.delete()
                                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
@@ -274,7 +346,6 @@ public class MainActivity extends AppCompatActivity {
                                                         Log.d(TAG, "Kullanıcı hesabı silindi.");
                                                         Toast.makeText(MainActivity.this, "Hesabınız başarıyla silindi.", Toast.LENGTH_LONG).show();
 
-                                                        // Hesap silindikten sonra Login ekranına yönlendir
                                                         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                                         startActivity(intent);
@@ -282,7 +353,6 @@ public class MainActivity extends AppCompatActivity {
 
                                                     } else {
                                                         Log.e(TAG, "Kullanıcı hesabı silinemedi.", task.getException());
-                                                        // task.getException() içinde FirebaseAuthRecentLoginRequiredException gibi hatalar olabilir (yeniden kimlik doğrulama süresi dolduysa)
                                                         Toast.makeText(MainActivity.this, "Hesap silme başarısız: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                                                     }
                                                 }
@@ -290,27 +360,105 @@ public class MainActivity extends AppCompatActivity {
                                 } else {
                                     Log.e(TAG, "Yeniden kimlik doğrulama başarısız.", task.getException());
                                     Toast.makeText(MainActivity.this, "Kimlik doğrulama başarısız. Lütfen şifrenizi kontrol edin.", Toast.LENGTH_LONG).show();
-                                    // Genellikle şifre yanlış girilmiştir
                                 }
                             }
                         });
             }
         });
 
-        // Negatif buton (İptal)
         builder.setNegativeButton("İptal", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel(); // Dialogu kapat
+                dialog.cancel();
             }
         });
 
-        // AlertDialog'u göster
         builder.show();
     }
 
+    // Şehir ekleme diyalogunu gösteren metod (Güncellendi: Mevcut şehirleri işaretler ve kayıt sonrası Spinner'ı günceller)
+    private void showAddCityDialog() {
+        final String[] allProvinces = getResources().getStringArray(R.array.turkey_provinces);
 
-    // Hava durumu verisini çeken ayrı bir metod (Mevcut kod)
+        final boolean[] selectedItems = new boolean[allProvinces.length];
+        if (currentCityList != null) {
+            for (int i = 0; i < allProvinces.length; i++) {
+                if (currentCityList.contains(allProvinces[i])) {
+                    selectedItems[i] = true;
+                } else {
+                    selectedItems[i] = false;
+                }
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Şehirleri Seçin");
+
+        builder.setMultiChoiceItems(allProvinces, selectedItems, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                selectedItems[which] = isChecked;
+            }
+        });
+
+        builder.setPositiveButton("Tamam", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ArrayList<String> selectedCities = new ArrayList<>();
+                for (int i = 0; i < allProvinces.length; i++) {
+                    if (selectedItems[i]) {
+                        selectedCities.add(allProvinces[i]);
+                    }
+                }
+                saveSelectedCitiesToFirestore(selectedCities); // Şehirleri kaydet ve kayıt sonrası Spinner'ı güncelle
+                Log.d(TAG, "Seçilen Şehirler kaydediliyor: " + selectedCities.toString());
+            }
+        });
+
+        builder.setNegativeButton("İptal", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    // Seçilen şehirleri Firebase Firestore'a kaydeden metod (Güncellendi: Kayıt sonrası Spinner'ı otomatik günceller)
+    private void saveSelectedCitiesToFirestore(ArrayList<String> cities) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "Şehir kaydetmek için giriş yapmalısınız.", Toast.LENGTH_SHORT).show();
+            logoutUser();
+            return;
+        }
+        String userId = user.getUid();
+        Map<String, Object> cityData = new HashMap<>();
+        cityData.put("savedCities", cities);
+
+        db.collection("users").document(userId)
+                .set(cityData) // set() metodu mevcutsa günceller, yoksa oluşturur.
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Şehirler başarıyla kaydedildi!");
+                    Toast.makeText(MainActivity.this, "Seçilen şehirler kaydedildi.", Toast.LENGTH_SHORT).show();
+                    loadSavedCities(); // Kayıt başarılı olduktan sonra şehir listesini yeniden yükle ve Spinner'ı güncelle
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Şehirler kaydedilirken hata oluştu.", e);
+                    Toast.makeText(MainActivity.this, "Şehirler kaydedilirken hata oluştu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    // TODO: Şehir Silme Diyaloğu ve Firestore'dan Silme Metotları eklenecek (Şimdilik boş hali)
+    private void showDeleteCityDialog() {
+        Toast.makeText(this, "Şehir Sil seçildi (Yakında eklenecek)", Toast.LENGTH_SHORT).show();
+        // Bu metod, kullanıcının kayıtlı şehirlerini listeleyen ve silmek istediklerini seçmesini sağlayan bir diyalog gösterecek.
+        // Seçilen şehirler Firestore'dan kaldırılacak ve akabinde loadSavedCities() çağrılarak Spinner güncellenecek.
+    }
+
+
+    // Hava durumu verisini çeken ayrı bir metod
     private void getWeatherData(String cityName) {
         String url = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + API_KEY + "&units=metric&lang=tr";
 
@@ -332,13 +480,11 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 int humidity = weatherResponse.getMain().getHumidity();
 
-                                // Yazı formatını HTML kullanarak iyileştirme (Mevcut kod)
                                 String weatherText = "<b>İl:</b> " + cityDisplayName +
                                         "<br/><b>Sıcaklık:</b> " + String.format("%.1f", temperatureCelsius) + "°C" +
                                         "<br/><b>Durum:</b> " + description +
                                         "<br/><b>Nem:</b> %" + humidity;
 
-                                // İkon kodunu al ve göster (Mevcut kod)
                                 String iconCode = null;
                                 if (weatherResponse.getWeather() != null && !weatherResponse.getWeather().isEmpty() && weatherResponse.getWeather().get(0) != null) {
                                     iconCode = weatherResponse.getWeather().get(0).getIcon();
@@ -348,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
                                     String iconUrl = "https://openweathermap.org/img/wn/" + iconCode + "@2x.png";
                                     Glide.with(MainActivity.this)
                                             .load(iconUrl)
-                                            .placeholder(R.drawable.ic_launcher_foreground) // Placeholder ve error ikonlarını kendi ikonlarınla değiştirmeyi unutma
+                                            .placeholder(R.drawable.ic_launcher_foreground)
                                             .error(R.drawable.ic_launcher_background)
                                             .into(weatherIconImageView);
                                     weatherIconImageView.setVisibility(View.VISIBLE);
@@ -406,7 +552,7 @@ public class MainActivity extends AppCompatActivity {
         queue.add(stringRequest);
     }
 
-    // Activity sonlandığında bekleyen istekleri iptal etmek (Mevcut kod)
+    // Activity sonlandığında bekleyen istekleri iptal etmek
     @Override
     protected void onStop () {
         super.onStop();
@@ -414,6 +560,4 @@ public class MainActivity extends AppCompatActivity {
             queue.cancelAll(TAG);
         }
     }
-
-
 }

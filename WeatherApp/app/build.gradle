@@ -32,7 +32,8 @@ android {
 dependencies {
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.auth
-    implementation libs.glide 
+    implementation libs.glide
+    implementation libs.firebase.firestore
     annotationProcessor libs.compiler
     implementation libs.volley
     implementation libs.gson
