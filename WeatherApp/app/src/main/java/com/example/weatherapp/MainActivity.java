@@ -5,6 +5,8 @@ import com.example.weatherapp.models.WeatherResponse;
 import com.example.weatherapp.models.Weather;
 import com.example.weatherapp.models.Main;
 
+import android.security.KeyChain;
+
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -28,6 +30,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 // Firebase Authentication ve User için importlar
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -85,6 +91,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        try {
+            ProviderInstaller.installIfNeeded(this);
+        } catch (GooglePlayServicesRepairableException e) {
+            // Google Play Services on the device is old, disabled, or not available.
+            // Kullanıcıya bir diyalog gösterebilirsiniz
+            GoogleApiAvailability.getInstance().showErrorNotification(this, e.getConnectionStatusCode());
+            Log.e(TAG, "ProviderInstaller.installIfNeeded error: " + e.getMessage());
+        } catch (GooglePlayServicesNotAvailableException e) {
+            // Google Play Services mevcut değil
+            Log.e(TAG, "ProviderInstaller.installIfNeeded error: " + e.getMessage());
+        }
 
         // Firebase Authentication ve Firestore nesnelerini al
         mAuth = FirebaseAuth.getInstance();
