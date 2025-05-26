@@ -30,7 +30,11 @@ android {
 }
 
 dependencies {
+    implementation libs.play.services.safetynet
+    implementation libs.glide.v4120 // En son stabil sürümü kontrol edin
+    annotationProcessor libs.compiler.v4120 // Aynı sürüm olmalı
     implementation platform(libs.firebase.bom)
+    implementation libs.play.services.auth
     implementation libs.firebase.auth
     implementation libs.glide
     implementation libs.firebase.firestore
