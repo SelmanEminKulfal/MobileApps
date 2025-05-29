@@ -1,49 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"  android:padding="16dp"
+    android:padding="16dp"
     tools:context=".LoginActivity">
 
     <TextView
+        android:id="@+id/tv_login_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:text="Welcome to WeatherApp"
-        android:textSize="24sp" />
+        android:text="Giriş Yap - WeatherApp"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginTop="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/editTextEmail"
-        android:layout_width="match_parent"
+        android:id="@+id/et_login_email"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="E-posta"
         android:inputType="textEmailAddress"
-        android:layout_marginBottom="16dp"/>
+        android:padding="12dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_login_title" />
 
     <EditText
-        android:id="@+id/editTextPassword"
-        android:layout_width="match_parent"
+        android:id="@+id/et_login_password"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Şifre"
         android:inputType="textPassword"
-        android:layout_marginBottom="24dp"/>
+        android:padding="12dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_login_email" />
 
     <Button
-        android:id="@+id/buttonLogin"
-        android:layout_width="wrap_content"
+        android:id="@+id/btn_login"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Giriş Yap"/>
+        android:text="Giriş Yap"
+        android:padding="12dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/et_login_password" />
 
     <TextView
-        android:id="@+id/textViewRegisterLink"
+        android:id="@+id/tv_register_link"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hesabın yok mu? Kayıt ol"
-        android:textColor="?android:attr/colorPrimary"  android:layout_marginTop="16dp"
+        android:text="Hesabın yok mu? Kayıt Ol"
+        android:textColor="?attr/colorPrimary"
+        android:layout_marginTop="24dp"
         android:clickable="true"
-        android:focusable="true"/>
+        android:focusable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_login" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

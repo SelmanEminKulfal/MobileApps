@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_add_city"
+        android:title="Şehir Ekle" />
+
+    <item
+        android:id="@+id/action_delete_city"
+        android:title="Şehir Sil" />
+
+    <item
+        android:id="@+id/action_update_password"
+        android:title="Şifre Güncelle" />
+
+    <item
+        android:id="@+id/action_delete_account"
+        android:title="Hesabı Sil" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:title="Çıkış Yap" />
+</menu>

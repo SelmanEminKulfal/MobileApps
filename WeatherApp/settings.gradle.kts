@@ -1,12 +1,6 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google() // Bu satırın olduğundan emin olun
         mavenCentral()
         gradlePluginPortal()
     }
@@ -14,10 +8,11 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google() // Bu satırın olduğundan emin olun
         mavenCentral()
     }
 }
 
 rootProject.name = "WeatherApp"
-include ':app'
+include(":app")
+ 
